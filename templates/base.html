@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Антикваріат</title>
+</head>
+<body>
+    <h1>Антикварний магазин</h1>
+
+    <a href="/">Головна</a> |
+    <a href="/add">Додати товар</a> |
+    <a href="/logout">Вийти</a>
+
+    <hr>
+
+    
+    <form action="/search" method="get">
+        <input name="q" placeholder="Пошук">
+        <button type="submit">Знайти</button>
+    </form>
+
+    <hr>
+
+    {% block content %}{% endblock %}
+</body>
+</html>

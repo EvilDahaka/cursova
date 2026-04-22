@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Редагувати товар</h2>
+
+<form method="post">
+    <input name="name" value="{{ item.name }}"><br>
+    <input name="category" value="{{ item.category }}"><br>
+    <input name="year" value="{{ item.year }}"><br>
+    <input name="price" value="{{ item.price }}"><br>
+    <input name="condition" value="{{ item.condition }}"><br>
+    <button>Зберегти</button>
+</form>
+
+{% endblock %}
