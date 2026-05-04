@@ -3,56 +3,55 @@ from models.category import Category
 
 class CategoryService:
     """
-    Сервіс для роботи з категоріями.
-    Повертає об'єкти Category, а не сирі дані з БД.
+    Об'єктний сервіс для роботи з категоріями
     """
 
-    @staticmethod
-    def get_all():
-        # Отримання всіх категорій і перетворення у об'єкти
-        conn = get_db_connection()
+    def __init__(self):
+        # Інкапсуляція доступу до БД
+        self.get_connection = get_db_connection
+
+    def get_all(self):
+        # Отримання категорій як об'єктів
+        conn = self.get_connection()
         try:
-            rows = conn.execute("SELECT * FROM categories").fetchall()
+            rows = conn.execute("SELECT id, name FROM categories").fetchall()
 
-            # Перетворюємо записи з БД у об'єкти Category
-            categories = [
-                Category(row['id'], row['name']) for row in rows
-            ]
-
-            return categories
+            return [Category(row['id'], row['name']) for row in rows]
 
         except Exception:
             return []
         finally:
             conn.close()
 
-    @staticmethod
-    def create(name):
-        # Створення нової категорії
-        conn = get_db_connection()
+    def create(self, name):
+        # Бізнес-логіка + валідація
+        if not name or len(name.strip()) < 2:
+            raise ValueError("Назва категорії некоректна")
+
+        conn = self.get_connection()
         try:
             conn.execute(
                 "INSERT INTO categories (name) VALUES (?)",
-                (name,)
+                (name.strip(),)
             )
             conn.commit()
             return True
+
         except Exception:
             return False
         finally:
             conn.close()
 
-    @staticmethod
-    def delete(id):
-        # Видалення категорії
-        conn = get_db_connection()
+    def delete(self, category_id):
+        conn = self.get_connection()
         try:
             conn.execute(
                 "DELETE FROM categories WHERE id = ?",
-                (id,)
+                (category_id,)
             )
             conn.commit()
             return True
+
         except Exception:
             return False
         finally:

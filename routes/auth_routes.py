@@ -1,29 +1,26 @@
 from flask import Blueprint, render_template, request, redirect, session
-from database.db import get_db_connection
-from models.user import User, AdminUser
+from services.user_service import UserService
 
+# Створюємо Blueprint для авторизації
 auth_bp = Blueprint('auth', __name__)
 
+# Створюємо екземпляр сервісу (об'єктний підхід)
+user_service = UserService()
+
+
+# Логін користувача
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Отримуємо дані з форми
         username = request.form['username']
         password = request.form['password']
 
-        conn = get_db_connection()
-        user = conn.execute(
-            "SELECT * FROM users WHERE username = ? AND password = ?",
-            (username, password)
-        ).fetchone()
-        conn.close()
+        # Виконуємо авторизацію через сервіс
+        user_obj = user_service.login(username, password)
 
-        if user:
-            # 🔥 правильні відступи тут
-            if user['is_admin']:
-                user_obj = AdminUser(user['id'], user['username'])
-            else:
-                user_obj = User(user['id'], user['username'], False)
-
+        if user_obj:
+            # Зберігаємо дані користувача в сесії
             session['user'] = user_obj.username
             session['user_id'] = user_obj.id
             session['is_admin'] = user_obj.is_admin_user()
@@ -35,7 +32,9 @@ def login():
     return render_template('login.html')
 
 
+# Вихід з системи
 @auth_bp.route('/logout')
 def logout():
+    # Очищення сесії
     session.clear()
     return redirect('/login')

@@ -1,21 +1,31 @@
 class Item:
-    def __init__(self, id, name, category, year, price, condition):
+    """
+    Модель антикварного товару (об'єкт предметної області)
+    """
+
+    def __init__(
+        self,
+        id,
+        name,
+        category_id,
+        year,
+        price,
+        condition,
+        user_id,
+        category_name=None
+    ):
+        # Основні поля товару
         self.id = id
         self.name = name
-        self.category = category
+        self.category_id = category_id
         self.year = year
         self.price = price
         self.condition = condition
+        self.user_id = user_id
 
-    @staticmethod
-    def get_all(conn):
-        return conn.execute("SELECT * FROM items").fetchall()
+        # Назва категорії (з JOIN)
+        self.category_name = category_name
 
-    @staticmethod
-    def get_by_id(conn, id):
-        return conn.execute("SELECT * FROM items WHERE id=?", (id,)).fetchone()
-
-    @staticmethod
-    def delete(conn, id):
-        conn.execute("DELETE FROM items WHERE id=?", (id,))
-        conn.commit()
+    def __str__(self):
+        # Зручне текстове представлення
+        return f"{self.name} ({self.year})"
