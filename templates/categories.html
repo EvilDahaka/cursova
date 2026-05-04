@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2>Категорії</h2>
+
+    <form method="post">
+        <input name="name" placeholder="Нова категорія" required>
+        <button>Додати</button>
+    </form>
+
+    <ul>
+        {% for cat in categories %}
+        <li>
+            {{ cat.name }}
+            <a href="/categories/delete/{{ cat.id }}" onclick="return confirm('Видалити?')">❌</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

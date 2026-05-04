@@ -5,12 +5,22 @@
 <div class="card">
     <h2>Список товарів</h2>
 
-    <form action="/search">
-        <input name="q" placeholder="Пошук...">
-        <button>Знайти</button>
+    <!-- 🔍 Пошук -->
+    <form action="/search" method="get" style="margin-bottom: 15px;">
+        <input name="q" placeholder="Пошук по назві">
+        <button type="submit">🔍</button>
     </form>
 
-    <table>
+    <!-- ➕ Додати -->
+    <a href="/add" style="display:inline-block; margin-bottom: 10px;">
+        ➕ Додати товар
+    </a>
+
+    {% if items|length == 0 %}
+        <p>Немає товарів</p>
+    {% endif %}
+
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
         <tr>
             <th>Назва</th>
             <th>Категорія</th>
@@ -23,13 +33,19 @@
         {% for item in items %}
         <tr>
             <td>{{ item.name }}</td>
-            <td>{{ item.category }}</td>
+            <td>{{ item.category_name }}</td>
             <td>{{ item.year }}</td>
             <td>{{ item.price }}</td>
             <td>{{ item.condition }}</td>
             <td>
+                <!-- ✏️ Редагування -->
                 <a href="/edit/{{ item.id }}">✏️</a>
-                <a href="/delete/{{ item.id }}">❌</a>
+
+                <!-- ❌ Видалення -->
+                <a href="/delete/{{ item.id }}" 
+                   onclick="return confirm('Видалити товар?')">
+                   ❌
+                </a>
             </td>
         </tr>
         {% endfor %}

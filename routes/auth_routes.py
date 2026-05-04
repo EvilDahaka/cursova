@@ -1,18 +1,25 @@
 from flask import Blueprint, render_template, request, redirect, session
-from services.user_service import UserService
+from database.db import get_db_connection
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = UserService.login(
-            request.form['username'],
-            request.form['password']
-        )
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = get_db_connection()
+        user = conn.execute(
+            "SELECT * FROM users WHERE username = ? AND password = ?",
+            (username, password)
+        ).fetchone()
+        conn.close()
 
         if user:
             session['user'] = user['username']
+            session['user_id'] = user['id']
+            session['is_admin'] = user['is_admin']
             return redirect('/')
         else:
             return render_template('login.html', error="Невірний логін або пароль")

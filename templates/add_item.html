@@ -6,13 +6,23 @@
     <h2>Додати товар</h2>
 
     <form method="post">
-        <input name="name" placeholder="Назва">
-        <input name="category" placeholder="Категорія">
-        <input name="year" placeholder="Рік">
-        <input name="price" placeholder="Ціна">
-        <input name="condition" placeholder="Стан">
-        <button>Додати</button>
+
+        <input name="name" placeholder="Назва" required>
+
+        <select name="category_id" required>
+            <option value="">Оберіть категорію</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <input name="year" placeholder="Рік" type="number" required>
+        <input name="price" placeholder="Ціна" type="number" step="0.01" required>
+        <input name="condition" placeholder="Стан" required>
+
+        <button type="submit">Додати</button>
     </form>
+
 </div>
 
 {% endblock %}

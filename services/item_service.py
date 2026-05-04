@@ -3,53 +3,80 @@ from database.db import get_db_connection
 class ItemService:
 
     @staticmethod
-    def get_all():
+    def get_by_user(user_id):
         conn = get_db_connection()
-        items = conn.execute("SELECT * FROM items").fetchall()
+        items = conn.execute("""
+            SELECT items.*, categories.name as category_name
+            FROM items
+            JOIN categories ON items.category_id = categories.id
+            WHERE items.user_id = ?
+        """, (user_id,)).fetchall()
         conn.close()
         return items
 
     @staticmethod
-    def get_by_id(item_id):
+    def create(data, user_id):
         conn = get_db_connection()
-        item = conn.execute("SELECT * FROM items WHERE id=?", (item_id,)).fetchone()
+        conn.execute("""
+            INSERT INTO items (name, category_id, year, price, condition, user_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            data['name'],
+            data['category_id'],
+            data['year'],
+            data['price'],
+            data['condition'],
+            user_id
+        ))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def delete(id):
+        conn = get_db_connection()
+        conn.execute("DELETE FROM items WHERE id = ?", (id,))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def search(query, user_id):
+        conn = get_db_connection()
+        items = conn.execute("""
+            SELECT items.*, categories.name as category_name
+            FROM items
+            JOIN categories ON items.category_id = categories.id
+            WHERE items.user_id = ?
+            AND items.name LIKE ?
+            """, (user_id, f"%{query}%")).fetchall()
+        conn.close()
+        return items
+    
+
+    @staticmethod
+    def get_by_id(id):
+        conn = get_db_connection()
+        item = conn.execute(
+            "SELECT * FROM items WHERE id = ?",
+            (id,)
+            ).fetchone()
         conn.close()
         return item
-
+    
     @staticmethod
-    def create(data):
+    def update(id, data):   
         conn = get_db_connection()
-        conn.execute(
-            "INSERT INTO items (name, category, year, price, condition) VALUES (?, ?, ?, ?, ?)",
-            (data['name'], data['category'], data['year'], data['price'], data['condition'])
-        )
-        conn.commit()
-        conn.close()
-
-    @staticmethod
-    def update(item_id, data):
-        conn = get_db_connection()
-        conn.execute('''
+        conn.execute("""
             UPDATE items
-            SET name=?, category=?, year=?, price=?, condition=?
-            WHERE id=?
-        ''', (data['name'], data['category'], data['year'], data['price'], data['condition'], item_id))
+            SET name = ?, category_id = ?, year = ?, price = ?, condition = ?
+            WHERE id = ?
+            """, (
+                data['name'],
+                data['category_id'],
+                data['year'],
+                data['price'],
+                data['condition'],
+                id
+            ))
+
         conn.commit()
         conn.close()
-
-    @staticmethod
-    def delete(item_id):
-        conn = get_db_connection()
-        conn.execute("DELETE FROM items WHERE id=?", (item_id,))
-        conn.commit()
-        conn.close()
-
-    @staticmethod
-    def search(query):
-        conn = get_db_connection()
-        items = conn.execute(
-            "SELECT * FROM items WHERE name LIKE ?",
-            ('%' + query + '%',)
-        ).fetchall()
-        conn.close()
-        return items
