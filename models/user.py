@@ -1,16 +1,5 @@
 class User:
-    def __init__(self, id, username, is_admin):
+    def __init__(self, id, username, password):
         self.id = id
         self.username = username
-        self.is_admin = is_admin
-
-    def is_admin_user(self):
-        return False
-
-
-class AdminUser(User):
-    def __init__(self, id, username):
-        super().__init__(id, username, True)
-
-    def is_admin_user(self):
-        return True
+        self.password = password
