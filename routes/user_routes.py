@@ -1,31 +1,41 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect
 from services.user_service import UserService
+from utils.decorators import login_required, admin_required
 
 user_bp = Blueprint('user', __name__)
 
-@user_bp.route('/users', methods=['GET', 'POST'])
+# Список користувачів (тільки для адміністратора)
+@user_bp.route('/users')
+@login_required
+@admin_required
 def users():
-
-    if 'user' not in session:
-        return redirect('/login')
-
-    if not session.get('is_admin'):
-        return "Доступ заборонено"
-
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        UserService.create(username, password)
-        return redirect('/users')
-
     users = UserService.get_all()
     return render_template('users.html', users=users)
 
+# Створення нового користувача
+@user_bp.route('/users/add', methods=['POST'])
+@login_required
+@admin_required
+def add_user():
+    username = request.form['username']
+    password = request.form['password']
+    is_admin = int(request.form.get('is_admin', 0))
 
+    result = UserService.create(username, password, is_admin)
+
+    if not result:
+        return "Помилка при створенні користувача"
+
+    return redirect('/users')
+
+# Видалення користувача
 @user_bp.route('/users/delete/<int:id>')
+@login_required
+@admin_required
 def delete_user(id):
-    if not session.get('is_admin'):
-        return "Доступ заборонено"
+    result = UserService.delete(id)
 
-    UserService.delete(id)
+    if not result:
+        return "Помилка при видаленні користувача"
+
     return redirect('/users')

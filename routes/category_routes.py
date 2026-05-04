@@ -1,30 +1,38 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect
 from services.category_service import CategoryService
+from utils.decorators import login_required, admin_required
 
 category_bp = Blueprint('category', __name__)
 
-@category_bp.route('/categories', methods=['GET', 'POST'])
+# Список категорій
+@category_bp.route('/categories')
+@login_required
+@admin_required
 def categories():
-
-    if 'user' not in session:
-        return redirect('/login')
-
-    if not session.get('is_admin'):
-        return "Доступ заборонено"
-
-    if request.method == 'POST':
-        name = request.form['name']
-        CategoryService.create(name)
-        return redirect('/categories')
-
     categories = CategoryService.get_all()
     return render_template('categories.html', categories=categories)
 
+# Додавання категорії
+@category_bp.route('/categories/add', methods=['POST'])
+@login_required
+@admin_required
+def add_category():
+    name = request.form['name']
+    result = CategoryService.create(name)
 
+    if not result:
+        return "Помилка при створенні категорії"
+
+    return redirect('/categories')
+
+# Видалення категорії
 @category_bp.route('/categories/delete/<int:id>')
+@login_required
+@admin_required
 def delete_category(id):
-    if not session.get('is_admin'):
-        return "Доступ заборонено"
+    result = CategoryService.delete(id)
 
-    CategoryService.delete(id)
+    if not result:
+        return "Не вдалося видалити категорію"
+
     return redirect('/categories')

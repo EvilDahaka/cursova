@@ -2,23 +2,33 @@
 
 {% block content %}
 
-<div class="card">
-    <h2>Категорії</h2>
+<h2>Категорії</h2>
 
-    <form method="post">
-        <input name="name" placeholder="Нова категорія" required>
-        <button>Додати</button>
-    </form>
+<!-- Форма додавання категорії -->
+<form method="POST" action="/categories/add" style="margin-bottom: 20px;">
+    <input type="text" name="name" placeholder="Назва категорії" required>
+    <button type="submit">Додати</button>
+</form>
 
-    <ul>
-        {% for cat in categories %}
-        <li>
-            {{ cat.name }}
-            <a href="/categories/delete/{{ cat.id }}" onclick="return confirm('Видалити?')">❌</a>
-        </li>
-        {% endfor %}
-    </ul>
+<!-- Список категорій -->
+<table border="1" cellpadding="10" cellspacing="0">
+    <tr>
+        <th>ID</th>
+        <th>Назва</th>
+        <th>Дії</th>
+    </tr>
 
-</div>
+    {% for category in categories %}
+    <tr>
+        <td>{{ category.id }}</td>
+        <td>{{ category.name }}</td>
+        <td>
+            <a href="/categories/delete/{{ category.id }}" onclick="return confirm('Видалити категорію?')">
+                Видалити
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
 {% endblock %}
