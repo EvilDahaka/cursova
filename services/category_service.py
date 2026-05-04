@@ -1,16 +1,26 @@
 from database.db import get_db_connection
+from models.category import Category
 
 class CategoryService:
     """
-    Сервіс для роботи з категоріями антикварних предметів.
+    Сервіс для роботи з категоріями.
+    Повертає об'єкти Category, а не сирі дані з БД.
     """
 
     @staticmethod
     def get_all():
-        # Отримання всіх категорій
+        # Отримання всіх категорій і перетворення у об'єкти
         conn = get_db_connection()
         try:
-            return conn.execute("SELECT * FROM categories").fetchall()
+            rows = conn.execute("SELECT * FROM categories").fetchall()
+
+            # Перетворюємо записи з БД у об'єкти Category
+            categories = [
+                Category(row['id'], row['name']) for row in rows
+            ]
+
+            return categories
+
         except Exception:
             return []
         finally:
@@ -21,7 +31,10 @@ class CategoryService:
         # Створення нової категорії
         conn = get_db_connection()
         try:
-            conn.execute("INSERT INTO categories (name) VALUES (?)", (name,))
+            conn.execute(
+                "INSERT INTO categories (name) VALUES (?)",
+                (name,)
+            )
             conn.commit()
             return True
         except Exception:
@@ -31,10 +44,13 @@ class CategoryService:
 
     @staticmethod
     def delete(id):
-        # Видалення категорії (може не спрацювати якщо є зв’язки)
+        # Видалення категорії
         conn = get_db_connection()
         try:
-            conn.execute("DELETE FROM categories WHERE id = ?", (id,))
+            conn.execute(
+                "DELETE FROM categories WHERE id = ?",
+                (id,)
+            )
             conn.commit()
             return True
         except Exception:
