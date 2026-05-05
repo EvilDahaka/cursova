@@ -7,28 +7,30 @@ class CategoryService:
         return Category.query.all()
 
     def create(self, name):
-        if not name or len(name.strip()) < 2:
-            return False
-
         try:
-            category = Category(name=name.strip())
+            if not name:
+                return False
+
+            category = Category(name=name)
             db.session.add(category)
             db.session.commit()
-
-            print(f"[LOG] Category created: {name}")
             return True
+
         except Exception as e:
+            db.session.rollback()
             print(e)
             return False
 
     def delete(self, category_id):
         try:
-            category = Category.query.get(category_id)
+            category = db.session.get(Category, category_id)
             if category:
                 db.session.delete(category)
                 db.session.commit()
                 return True
             return False
+
         except Exception as e:
+            db.session.rollback()
             print(e)
             return False

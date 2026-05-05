@@ -16,30 +16,32 @@ class UserService:
 
     def create(self, username, password, is_admin):
         try:
+            if not username or not password:
+                return False
+
             user = User(username=username, is_admin=is_admin)
             user.set_password(password)
 
             db.session.add(user)
             db.session.commit()
 
-            print(f"[LOG] Created user {username}")
-
             return True
+
         except Exception as e:
+            db.session.rollback()
             print(e)
             return False
 
     def delete(self, id):
         try:
-            user = User.query.get(id)
+            user = db.session.get(User, id)
             if user:
                 db.session.delete(user)
                 db.session.commit()
-
-                print(f"[LOG] Deleted user {id}")
                 return True
-
             return False
+
         except Exception as e:
+            db.session.rollback()
             print(e)
             return False
