@@ -1,161 +1,88 @@
-from database.db import get_db_connection
 from models.item import Item
+from models.category import Category
+from extensions import db
+from sqlalchemy import func
 
 class ItemService:
-    """
-    Сервіс для роботи з антикварними товарами.
-    Працює з об'єктами Item та інкапсулює логіку доступу до БД.
-    """
-
-    def __init__(self):
-        # Зберігаємо функцію підключення до БД
-        self.get_connection = get_db_connection
 
     def get_by_user(self, user_id):
-        # Отримання всіх товарів конкретного користувача
-        conn = self.get_connection()
-        try:
-            rows = conn.execute("""
-                SELECT items.*, categories.name as category_name
-                FROM items
-                JOIN categories ON items.category_id = categories.id
-                WHERE items.user_id = ?
-            """, (user_id,)).fetchall()
+        return Item.query.filter_by(user_id=user_id).all()
 
-            # Перетворення рядків БД у об'єкти Item
-            return [
-                Item(
-                    row['id'],
-                    row['name'],
-                    row['category_id'],
-                    row['year'],
-                    row['price'],
-                    row['condition'],
-                    row['user_id'],
-                    row['category_name']
-                )
-                for row in rows
-            ]
+    def get_all(self):
+        return Item.query.all()
 
-        except Exception:
-            return []
-        finally:
-            conn.close()
-
-    def get_by_id(self, id):
-        # Отримання одного товару за ID
-        conn = self.get_connection()
-        try:
-            row = conn.execute(
-                "SELECT * FROM items WHERE id = ?",
-                (id,)
-            ).fetchone()
-
-            if not row:
-                return None
-
-            return Item(
-                row['id'],
-                row['name'],
-                row['category_id'],
-                row['year'],
-                row['price'],
-                row['condition'],
-                row['user_id']
-            )
-
-        except Exception:
-            return None
-        finally:
-            conn.close()
+    def get_by_id(self, item_id):
+        return Item.query.get(item_id)
 
     def create(self, data, user_id):
-        # Додавання нового товару
-        conn = self.get_connection()
         try:
-            conn.execute("""
-                INSERT INTO items (name, category_id, year, price, condition, user_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                data['name'],
-                data['category_id'],
-                data['year'],
-                data['price'],
-                data['condition'],
-                user_id
-            ))
-            conn.commit()
+            item = Item(
+                name=data['name'],
+                category_id=int(data['category_id']),
+                year=int(data['year']),
+                price=float(data['price']),
+                condition=data['condition'],
+                user_id=user_id
+            )
+
+            db.session.add(item)
+            db.session.commit()
+
+            print(f"[LOG] Created item {data['name']}")
             return True
 
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
-        finally:
-            conn.close()
 
-    def update(self, id, data):
-        # Оновлення існуючого товару
-        conn = self.get_connection()
+    def update(self, item_id, data):
         try:
-            conn.execute("""
-                UPDATE items
-                SET name = ?, category_id = ?, year = ?, price = ?, condition = ?
-                WHERE id = ?
-            """, (
-                data['name'],
-                data['category_id'],
-                data['year'],
-                data['price'],
-                data['condition'],
-                id
-            ))
-            conn.commit()
+            item = Item.query.get(item_id)
+            if not item:
+                return False
+
+            item.name = data['name']
+            item.category_id = int(data['category_id'])
+            item.year = int(data['year'])
+            item.price = float(data['price'])
+            item.condition = data['condition']
+
+            db.session.commit()
             return True
 
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
-        finally:
-            conn.close()
 
-    def delete(self, id):
-        # Видалення товару за ID
-        conn = self.get_connection()
+    def delete(self, item_id):
         try:
-            conn.execute("DELETE FROM items WHERE id = ?", (id,))
-            conn.commit()
-            return True
-
-        except Exception:
+            item = Item.query.get(item_id)
+            if item:
+                db.session.delete(item)
+                db.session.commit()
+                return True
             return False
-        finally:
-            conn.close()
+
+        except Exception as e:
+            print(e)
+            return False
+
 
     def search(self, query, user_id):
-        # Пошук товарів за назвою
-        conn = self.get_connection()
-        try:
-            rows = conn.execute("""
-                SELECT items.*, categories.name as category_name
-                FROM items
-                JOIN categories ON items.category_id = categories.id
-                WHERE items.name LIKE ? AND items.user_id = ?
-            """, ('%' + query + '%', user_id)).fetchall()
+        if not query:
+            return self.get_by_user(user_id)
 
-            # Перетворення результату у об'єкти Item
-            return [
-                Item(
-                    row['id'],
-                    row['name'],
-                    row['category_id'],
-                    row['year'],
-                    row['price'],
-                    row['condition'],
-                    row['user_id'],
-                    row['category_name']
-                )
-                for row in rows
-            ]
+        query = query.strip().lower()
 
-        except Exception:
-            return []
-        finally:
-            conn.close()
+        items = self.get_by_user(user_id)
+
+        result = []
+
+        for item in items:
+            name = item.name.lower() if item.name else ""
+            category = item.category.name.lower() if item.category else ""
+
+            if query in name or query in category:
+                result.append(item)
+
+        return result

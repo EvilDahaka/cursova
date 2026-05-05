@@ -1,11 +1,7 @@
-class Category:
-    """
-    Об'єкт предметної області
-    """
+from extensions import db
 
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
+class Category(db.Model):
+    __tablename__ = "categories"
 
-    def __repr__(self):
-        return f"<Category {self.name}>"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)

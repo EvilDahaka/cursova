@@ -1,31 +1,14 @@
-class Item:
-    """
-    Модель антикварного товару (об'єкт предметної області)
-    """
+from extensions import db
 
-    def __init__(
-        self,
-        id,
-        name,
-        category_id,
-        year,
-        price,
-        condition,
-        user_id,
-        category_name=None
-    ):
-        # Основні поля товару
-        self.id = id
-        self.name = name
-        self.category_id = category_id
-        self.year = year
-        self.price = price
-        self.condition = condition
-        self.user_id = user_id
+class Item(db.Model):
+    __tablename__ = "items"
 
-        # Назва категорії (з JOIN)
-        self.category_name = category_name
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"))
+    year = db.Column(db.Integer)
+    price = db.Column(db.Float)
+    condition = db.Column(db.String(50))
+    user_id = db.Column(db.Integer)
 
-    def __str__(self):
-        # Зручне текстове представлення
-        return f"{self.name} ({self.year})"
+    category = db.relationship("Category")

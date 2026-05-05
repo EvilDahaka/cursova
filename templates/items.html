@@ -2,55 +2,70 @@
 
 {% block content %}
 
-<div class="card">
-    <h2>Список товарів</h2>
+<h2>Мої товари</h2>
 
-    <!-- 🔍 Пошук -->
-    <form action="/search" method="get" style="margin-bottom: 15px;">
-        <input name="q" placeholder="Пошук по назві">
-        <button type="submit">🔍</button>
-    </form>
 
-    <!-- ➕ Додати -->
-    <a href="/add" style="display:inline-block; margin-bottom: 10px;">
-        ➕ Додати товар
-    </a>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div style="padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
-    {% if items|length == 0 %}
-        <p>Немає товарів</p>
-    {% endif %}
 
-    <table border="1" cellpadding="8" cellspacing="0" width="100%">
-        <tr>
-            <th>Назва</th>
-            <th>Категорія</th>
-            <th>Рік</th>
-            <th>Ціна</th>
-            <th>Стан</th>
-            <th>Дії</th>
-        </tr>
+<form method="get" action="/" style="margin-bottom: 15px;">
+    <input 
+        type="text" 
+        name="q" 
+        placeholder="Пошук товарів..." 
+        value="{{ request.args.get('q', '') }}"
+        style="padding: 5px;"
+    >
+    <button type="submit">Пошук</button>
+</form>
 
-        {% for item in items %}
-        <tr>
-            <td>{{ item.name }}</td>
-            <td>{{ item.category_name }}</td>
-            <td>{{ item.year }}</td>
-            <td>{{ item.price }}</td>
-            <td>{{ item.condition }}</td>
-            <td>
-                <!-- ✏️ Редагування -->
-                <a href="/edit/{{ item.id }}">✏️</a>
 
-                <!-- ❌ Видалення -->
-                <a href="/delete/{{ item.id }}" 
-                   onclick="return confirm('Видалити товар?')">
-                   ❌
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+<a href="/add">
+    <button style="margin-bottom: 15px;">Додати товар</button>
+</a>
 
-</div>
+
+{% if items %}
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Назва</th>
+        <th>Категорія</th>
+        <th>Рік</th>
+        <th>Ціна</th>
+        <th>Стан</th>
+        <th>Дії</th>
+    </tr>
+
+    {% for item in items %}
+    <tr>
+        <td>{{ item.name }}</td>
+
+        
+        <td>{{ item.category.name if item.category else "—" }}</td>
+
+        <td>{{ item.year }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.condition }}</td>
+
+        <td>
+            <a href="/edit/{{ item.id }}">Редагувати</a> |
+            <a href="/delete/{{ item.id }}">Видалити</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% else %}
+<p>Нічого не знайдено</p>
+{% endif %}
 
 {% endblock %}

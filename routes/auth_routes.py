@@ -1,40 +1,37 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect, session, flash
 from services.user_service import UserService
 
-# Створюємо Blueprint для авторизації
 auth_bp = Blueprint('auth', __name__)
 
-# Створюємо екземпляр сервісу (об'єктний підхід)
 user_service = UserService()
 
 
-# Логін користувача
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Отримуємо дані з форми
-        username = request.form['username']
-        password = request.form['password']
+        session.pop('_flashes', None)
 
-        # Виконуємо авторизацію через сервіс
+        username = request.form.get('username')
+        password = request.form.get('password')
+
         user_obj = user_service.login(username, password)
 
         if user_obj:
-            # Зберігаємо дані користувача в сесії
             session['user'] = user_obj.username
             session['user_id'] = user_obj.id
-            session['is_admin'] = user_obj.is_admin_user()
+            session['is_admin'] = user_obj.is_admin
 
+            flash("Вхід виконано успішно", "success")
             return redirect('/')
         else:
-            return render_template('login.html', error="Невірний логін або пароль")
+            flash("Невірний логін або пароль", "danger")
+            return render_template('login.html')
 
     return render_template('login.html')
 
 
-# Вихід з системи
 @auth_bp.route('/logout')
 def logout():
-    # Очищення сесії
     session.clear()
+    flash("Ви вийшли з системи", "info")
     return redirect('/login')
