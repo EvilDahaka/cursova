@@ -1,10 +1,15 @@
+from services.base_service import BaseService
+from repositories.user_repository import UserRepository
 from models.user import User
 from extensions import db
 
-class UserService:
+class UserService(BaseService):
+
+    def __init__(self):
+        super().__init__(UserRepository())
 
     def login(self, username, password):
-        user = User.query.filter_by(username=username).first()
+        user = self.repository.get_by_username(username)
 
         if user and user.check_password(password):
             return user
@@ -12,19 +17,21 @@ class UserService:
         return None
 
     def get_all(self):
-        return User.query.all()
+        return self.repository.get_all()
 
     def create(self, username, password, is_admin):
         try:
             if not username or not password:
                 return False
 
-            user = User(username=username, is_admin=is_admin)
+            user = User(
+                username=username,
+                is_admin=is_admin
+            )
+
             user.set_password(password)
 
-            db.session.add(user)
-            db.session.commit()
-
+            self.repository.add(user)
             return True
 
         except Exception as e:
@@ -32,13 +39,14 @@ class UserService:
             print(e)
             return False
 
-    def delete(self, id):
+    def delete(self, user_id):
         try:
-            user = db.session.get(User, id)
+            user = self.repository.get_by_id(user_id)
+
             if user:
-                db.session.delete(user)
-                db.session.commit()
+                self.repository.delete(user)
                 return True
+
             return False
 
         except Exception as e:

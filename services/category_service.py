@@ -1,10 +1,15 @@
+from services.base_service import BaseService
+from repositories.category_repository import CategoryRepository
 from models.category import Category
 from extensions import db
 
-class CategoryService:
+class CategoryService(BaseService):
+
+    def __init__(self):
+        super().__init__(CategoryRepository())
 
     def get_all(self):
-        return Category.query.all()
+        return self.repository.get_all()
 
     def create(self, name):
         try:
@@ -12,8 +17,8 @@ class CategoryService:
                 return False
 
             category = Category(name=name)
-            db.session.add(category)
-            db.session.commit()
+
+            self.repository.add(category)
             return True
 
         except Exception as e:
@@ -23,11 +28,12 @@ class CategoryService:
 
     def delete(self, category_id):
         try:
-            category = db.session.get(Category, category_id)
+            category = self.repository.get_by_id(category_id)
+
             if category:
-                db.session.delete(category)
-                db.session.commit()
+                self.repository.delete(category)
                 return True
+
             return False
 
         except Exception as e:

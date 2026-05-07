@@ -10,8 +10,11 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
-    
-    items = db.relationship("Item", backref="user", cascade="all, delete-orphan")
+    items = db.relationship(
+        "Item",
+        backref="user",
+        cascade="all, delete-orphan"
+    )
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

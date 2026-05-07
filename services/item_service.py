@@ -1,44 +1,54 @@
+from services.base_service import BaseService
+from repositories.item_repository import ItemRepository
 from models.item import Item
-from models.category import Category
+from dto.item_dto import ItemDTO
 from extensions import db
 
-class ItemService:
+class ItemService(BaseService):
 
+    def __init__(self):
+        super().__init__(ItemRepository())
+
+    # Отримати всі товари користувача
     def get_by_user(self, user_id):
-        return Item.query.filter_by(user_id=user_id).all()
+        return self.repository.get_by_user(user_id)
 
+    # Отримати всі товари
     def get_all(self):
-        return Item.query.all()
+        return self.repository.get_all()
 
+    # Отримати товар по id
     def get_by_id(self, item_id):
-        return db.session.get(Item, item_id)
+        return self.repository.get_by_id(item_id)
 
+    # Створення нового товару
     def create(self, data, user_id):
         try:
-            name = data.get('name')
-            category_id = data.get('category_id')
-            year = data.get('year')
-            price = data.get('price')
-            condition = data.get('condition')
+            # DTO об'єкт
+            dto = ItemDTO(
+                name=data.get('name'),
+                category_id=data.get('category_id'),
+                year=data.get('year'),
+                price=data.get('price'),
+                condition=data.get('condition')
+            )
 
-            if not name or not category_id:
+            # Проста валідація
+            if not dto.name:
                 return False
 
-            # проста валідація стану
-            if condition not in ["Новий", "Вживаний", "На запчастини"]:
-                return False
-
+            # Створення ORM об'єкта
             item = Item(
-                name=name,
-                category_id=int(category_id),
-                year=int(year),
-                price=float(price),
-                condition=condition,
+                name=dto.name,
+                category_id=int(dto.category_id),
+                year=int(dto.year),
+                price=float(dto.price),
+                condition=dto.condition,
                 user_id=user_id
             )
 
-            db.session.add(item)
-            db.session.commit()
+            # Збереження через repository
+            self.repository.add(item)
 
             return True
 
@@ -47,9 +57,11 @@ class ItemService:
             print(e)
             return False
 
+    # Оновлення товару
     def update(self, item_id, data):
         try:
-            item = db.session.get(Item, item_id)
+            item = self.repository.get_by_id(item_id)
+
             if not item:
                 return False
 
@@ -60,6 +72,7 @@ class ItemService:
             item.condition = data.get('condition')
 
             db.session.commit()
+
             return True
 
         except Exception as e:
@@ -67,13 +80,15 @@ class ItemService:
             print(e)
             return False
 
+    # Видалення товару
     def delete(self, item_id):
         try:
-            item = db.session.get(Item, item_id)
+            item = self.repository.get_by_id(item_id)
+
             if item:
-                db.session.delete(item)
-                db.session.commit()
+                self.repository.delete(item)
                 return True
+
             return False
 
         except Exception as e:
@@ -81,7 +96,9 @@ class ItemService:
             print(e)
             return False
 
+    # Пошук товарів
     def search(self, query, user_id):
+
         if not query:
             return self.get_by_user(user_id)
 
@@ -90,9 +107,15 @@ class ItemService:
         items = self.get_by_user(user_id)
 
         result = []
+
         for item in items:
+
             name = item.name.lower()
-            category = item.category.name.lower() if item.category else ""
+
+            category = (
+                item.category.name.lower()
+                if item.category else ""
+            )
 
             if query in name or query in category:
                 result.append(item)

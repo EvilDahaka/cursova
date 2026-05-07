@@ -11,7 +11,14 @@ class Item(db.Model):
     price = db.Column(db.Float, nullable=False)
     condition = db.Column(db.String(50), nullable=False)
 
-    # 🔥 FOREIGN KEY
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
+    
+    type = db.Column(db.String(50))
+
     category = db.relationship("Category")
+
+    __mapper_args__ = {
+        "polymorphic_identity": "item",
+        "polymorphic_on": type
+    }
