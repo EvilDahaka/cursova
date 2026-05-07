@@ -2,29 +2,184 @@
 
 {% block content %}
 
-<div class="card">
-    <h2>Редагувати товар</h2>
+<h2>Редагувати товар</h2>
 
-    <form method="post">
+<form method="POST">
 
-        <input name="name" value="{{ item.name }}" required>
+    <!-- Назва -->
+    <label>Назва:</label><br>
 
-        <select name="category_id">
-            {% for cat in categories %}
-            <option value="{{ cat.id }}" 
-                {% if cat.id == item.category_id %}selected{% endif %}>
-                {{ cat.name }}
-            </option>
-            {% endfor %}
-        </select>
+    <input
+        type="text"
+        name="name"
+        value="{{ item.name }}"
+        required
+    >
 
-        <input name="year" type="number" value="{{ item.year }}" required>
-        <input name="price" type="number" step="0.01" value="{{ item.price }}" required>
-        <input name="condition" value="{{ item.condition }}" required>
+    <br><br>
 
-        <button>Зберегти</button>
-    </form>
+    <!-- Категорія -->
+    <label>Категорія:</label><br>
 
-</div>
+    <select
+        name="category_id"
+        id="category"
+        required
+    >
+
+        {% for category in categories %}
+
+        <option
+            value="{{ category.id }}"
+            {% if category.id == item.category_id %}
+                selected
+            {% endif %}
+        >
+            {{ category.name }}
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+    <br><br>
+
+    <!-- Рік -->
+    <label>Рік:</label><br>
+
+    <input
+        type="number"
+        name="year"
+        value="{{ item.year }}"
+        required
+    >
+
+    <br><br>
+
+    <!-- Ціна -->
+    <label>Ціна:</label><br>
+
+    <input
+        type="number"
+        step="0.01"
+        name="price"
+        value="{{ item.price }}"
+        required
+    >
+
+    <br><br>
+
+    <!-- Стан -->
+    <label>Стан:</label><br>
+
+    <input
+        type="text"
+        name="condition"
+        value="{{ item.condition }}"
+        required
+    >
+
+    <br><br>
+
+    <!-- Painting fields -->
+    <div id="painting-fields" style="display:none;">
+
+        <h3>Інформація про картину</h3>
+
+        <label>Автор:</label><br>
+
+        <input
+            type="text"
+            name="artist"
+            value="{{ item.artist if item.type == 'painting' else '' }}"
+        >
+
+        <br><br>
+
+        <label>Стиль:</label><br>
+
+        <input
+            type="text"
+            name="style"
+            value="{{ item.style if item.type == 'painting' else '' }}"
+        >
+
+        <br><br>
+
+    </div>
+
+    <!-- Coin fields -->
+    <div id="coin-fields" style="display:none;">
+
+        <h3>Інформація про монету</h3>
+
+        <label>Матеріал:</label><br>
+
+        <input
+            type="text"
+            name="material"
+            value="{{ item.material if item.type == 'coin' else '' }}"
+        >
+
+        <br><br>
+
+        <label>Країна:</label><br>
+
+        <input
+            type="text"
+            name="country"
+            value="{{ item.country if item.type == 'coin' else '' }}"
+        >
+
+        <br><br>
+
+    </div>
+
+    <button type="submit">
+        Оновити
+    </button>
+
+</form>
+
+<script>
+
+const categorySelect =
+    document.getElementById("category");
+
+const paintingFields =
+    document.getElementById("painting-fields");
+
+const coinFields =
+    document.getElementById("coin-fields");
+
+function updateFields() {
+
+    const selectedText =
+        categorySelect.options[
+            categorySelect.selectedIndex
+        ].text;
+
+    paintingFields.style.display = "none";
+    coinFields.style.display = "none";
+
+    // Картини
+    if (selectedText === "Картини") {
+        paintingFields.style.display = "block";
+    }
+
+    // Монети
+    if (selectedText === "Монети") {
+        coinFields.style.display = "block";
+    }
+}
+
+categorySelect.addEventListener(
+    "change",
+    updateFields
+);
+
+updateFields();
+
+</script>
 
 {% endblock %}

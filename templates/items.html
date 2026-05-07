@@ -4,7 +4,7 @@
 
 <h2>Мої товари</h2>
 
-
+<!-- Flash повідомлення -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -15,8 +15,9 @@
   {% endif %}
 {% endwith %}
 
-
+<!-- Пошук -->
 <form method="get" action="/" style="margin-bottom: 15px;">
+
     <input 
         type="text" 
         name="q" 
@@ -24,48 +25,104 @@
         value="{{ request.args.get('q', '') }}"
         style="padding: 5px;"
     >
-    <button type="submit">Пошук</button>
+
+    <button type="submit">
+        Пошук
+    </button>
+
 </form>
 
-
+<!-- Кнопка додавання -->
 <a href="/add">
-    <button style="margin-bottom: 15px;">Додати товар</button>
+
+    <button style="margin-bottom: 15px;">
+        Додати товар
+    </button>
+
 </a>
 
-
+<!-- Таблиця -->
 {% if items %}
+
 <table border="1" cellpadding="5">
+
     <tr>
         <th>Назва</th>
         <th>Категорія</th>
         <th>Рік</th>
         <th>Ціна</th>
         <th>Стан</th>
+        <th>Додаткова інформація</th>
         <th>Дії</th>
     </tr>
 
     {% for item in items %}
+
     <tr>
-        <td>{{ item.name }}</td>
 
-        
-        <td>{{ item.category.name if item.category else "—" }}</td>
-
-        <td>{{ item.year }}</td>
-        <td>{{ item.price }}</td>
-        <td>{{ item.condition }}</td>
-
+        <!-- Назва -->
         <td>
-            <a href="/edit/{{ item.id }}">Редагувати</a> |
-            <a href="/delete/{{ item.id }}">Видалити</a>
+            {{ item.name }}
         </td>
+
+        <!-- Категорія -->
+        <td>
+
+            {% if item.category %}
+                {{ item.category.name }}
+            {% else %}
+                —
+            {% endif %}
+
+        </td>
+
+        <!-- Рік -->
+        <td>
+            {{ item.year }}
+        </td>
+
+        <!-- Ціна -->
+        <td>
+            {{ item.price }}
+        </td>
+
+        <!-- Стан -->
+        <td>
+            {{ item.condition }}
+        </td>
+
+        <!-- Поліморфізм -->
+        <td>
+
+            {{ item.get_extra_info() }}
+
+        </td>
+
+        <!-- Дії -->
+        <td>
+
+            <a href="/edit/{{ item.id }}">
+                Редагувати
+            </a>
+
+            |
+
+            <a href="/delete/{{ item.id }}">
+                Видалити
+            </a>
+
+        </td>
+
     </tr>
+
     {% endfor %}
 
 </table>
 
 {% else %}
+
 <p>Нічого не знайдено</p>
+
 {% endif %}
 
 {% endblock %}

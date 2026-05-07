@@ -3,6 +3,9 @@ from repositories.item_repository import ItemRepository
 from models.item import Item
 from dto.item_dto import ItemDTO
 from extensions import db
+from models.painting import Painting
+from models.coin import Coin
+from models.category import Category
 
 class ItemService(BaseService):
 
@@ -23,8 +26,9 @@ class ItemService(BaseService):
 
     # Створення нового товару
     def create(self, data, user_id):
+
         try:
-            # DTO об'єкт
+
             dto = ItemDTO(
                 name=data.get('name'),
                 category_id=data.get('category_id'),
@@ -33,51 +37,110 @@ class ItemService(BaseService):
                 condition=data.get('condition')
             )
 
-            # Проста валідація
             if not dto.name:
                 return False
 
-            # Створення ORM об'єкта
-            item = Item(
-                name=dto.name,
-                category_id=int(dto.category_id),
-                year=int(dto.year),
-                price=float(dto.price),
-                condition=dto.condition,
-                user_id=user_id
+            category = db.session.get(
+                Category,
+                int(dto.category_id)
             )
 
-            # Збереження через repository
+            # Картини
+            if category.name == "Картини":
+
+                item = Painting(
+                    name=dto.name,
+                    artist=data.get("artist"),
+                    style=data.get("style"),
+                    category_id=int(dto.category_id),
+                    year=int(dto.year),
+                    price=float(dto.price),
+                    condition=dto.condition,
+                    user_id=user_id
+                )
+
+            # Монети
+            elif category.name == "Монети":
+
+                item = Coin(
+                    name=dto.name,
+                    material=data.get("material"),
+                    country=data.get("country"),
+                    category_id=int(dto.category_id),
+                    year=int(dto.year),
+                    price=float(dto.price),
+                    condition=dto.condition,
+                    user_id=user_id
+                )
+
+            # Звичайний Item
+            else:
+
+                item = Item(
+                    name=dto.name,
+                    category_id=int(dto.category_id),
+                    year=int(dto.year),
+                    price=float(dto.price),
+                    condition=dto.condition,
+                    user_id=user_id
+                )
+
             self.repository.add(item)
 
             return True
 
         except Exception as e:
+
             db.session.rollback()
+
             print(e)
+
             return False
 
     # Оновлення товару
     def update(self, item_id, data):
+
         try:
+
             item = self.repository.get_by_id(item_id)
 
             if not item:
                 return False
 
-            item.name = data.get('name')
-            item.category_id = int(data.get('category_id'))
-            item.year = int(data.get('year'))
-            item.price = float(data.get('price'))
-            item.condition = data.get('condition')
+            category = db.session.get(
+                Category,
+                int(data.get("category_id"))
+            )
+
+            # Загальні поля
+            item.name = data.get("name")
+            item.category_id = int(data.get("category_id"))
+            item.year = int(data.get("year"))
+            item.price = float(data.get("price"))
+            item.condition = data.get("condition")
+
+            # Painting
+            if item.type == "painting":
+
+                item.artist = data.get("artist")
+                item.style = data.get("style")
+
+            # Coin
+            elif item.type == "coin":
+
+                item.material = data.get("material")
+                item.country = data.get("country")
 
             db.session.commit()
 
             return True
 
         except Exception as e:
+
             db.session.rollback()
+
             print(e)
+
             return False
 
     # Видалення товару
